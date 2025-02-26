@@ -4,6 +4,7 @@ const ctx = canvas.getContext('2d');
 const blaster = new Audio("../assets/audio/blaster.wav");
 blaster.preload = 'auto';
 blaster.load()
+const scoreDisplay = document.getElementById("score");
 /*------------------------------ Load Sprites -----------------------------*/
 const playerImg = new Image();
 playerImg.src = "../assets/images/player.png";
@@ -33,6 +34,7 @@ const alienColumnCount = 6;
 let alienSpeed = 0.5;
 let alienDirection = 1;
 let isGameOver = false;
+let isPaused = false;
 let score = 0;
 
 /*-------------------------------- Classes ----------------------------------*/
@@ -138,13 +140,15 @@ function movePlayer(e) {
         player.x += 10;
     } else if (e.key === " ") {
         shootBullet();
+    } else if (e.key.toLowerCase() === "p") {
+        togglePause();
     }
 }
 
 document.addEventListener("keydown", movePlayer);
 
 function shootBullet() {
-    if(!isGameOver){
+    if(!isGameOver && !isPaused){
         let triggerBlaster = blaster.cloneNode();
         triggerBlaster.play();
         bullets.push({
@@ -190,7 +194,8 @@ function drawStars() {
 function drawScore() {
     ctx.fillStyle = "white";
     ctx.font = "16px Arial";
-    ctx.fillText("Score: " + score, 8, 20);
+    ctx.textAlign = "left";
+    ctx.fillText("Score: " + score, 8, 20);   
 }
 
 function checkGameOver() {
@@ -202,6 +207,10 @@ function checkGameOver() {
 
 function game() {
     if (isGameOver) return;
+     if (isPaused) {
+        handlePause();
+        return;
+    }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawStars();
     player.draw();
@@ -226,6 +235,23 @@ function displayWin() {
     ctx.fillText("You Win!", canvas.width / 2, canvas.height / 2);
 }
 
+function togglePause() {
+    isPaused = !isPaused;
+
+    if (!isPaused) {
+        game();
+    }
+}
+
+function handlePause() {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "white";
+    ctx.font = "30px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Paused", canvas.width / 2, canvas.height / 2);
+}
 /*-------------------------- Start Game ------------------------*/
 playerImg.onload = enemyImg1.onload = () => {
     createAliens();
