@@ -1,14 +1,24 @@
-/*-------------------------------- Constants --------------------------------*/
+/*-------------------------------- Cached Elements --------------------------------*/
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
+const blaster = new Audio("../assets/audio/blaster.wav");
 
+/*------------------------------ Load Sprites -----------------------------*/
+const playerImg = new Image();
+playerImg.src = "../assets/images/player.png";
 
+const enemyImg1 = new Image();
+enemyImg1.src = "../assets/images/enemy1.png";
+
+/*-------------------------------- Constants --------------------------------*/
 const player = {
     x: canvas.width / 2 - 15,
-    y: canvas.height - 30,
-    width: 30,
-    height: 20,
-    color: "purple"
+    y: canvas.height - 60,
+    width: 50,
+    height: 50,
+    draw() {
+        ctx.drawImage(playerImg, this.x, this.y, this.width, this.height);
+    }
 };
 
 const aliens = [];
@@ -24,20 +34,16 @@ let alienDirection = 1;
 let isGameOver = false;
 let score = 0;
 
-/*------------------------ Cached Element References ------------------------*/
-
-
 /*-------------------------------- Classes ----------------------------------*/
 class Alien {
-    constructor(x, y, width = 30, height = 20) {
+    constructor(x, y, width = 50, height = 50) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
-        this.status = 1; // 1 = alive, 0 = destroyed
-        this.color = "red";
+        this.status = 1;
     }
-
+``
     move(speed, direction) {
         this.x += speed * direction;
     }
@@ -48,15 +54,10 @@ class Alien {
 
     draw() {
         if (this.status === 1) {
-            ctx.fillStyle = this.color;
-            ctx.beginPath()
-            ctx.moveTo(this.x, this.y)
-            ctx.lineTo(this.x + this.width, this.y);
-            ctx.lineTo(this.x + this.width / 2, this.y + this.height);
-            ctx.closePath();
-            ctx.fill();
+            ctx.drawImage(enemyImg1, this.x, this.y, this.width, this.height);
         }
     }
+
     checkCollision(bullet) {
         return (
             bullet.x < this.x + this.width &&
@@ -69,20 +70,18 @@ class Alien {
 
 class Star {
     constructor() {
-        this.x = random(0, canvas.width);
-        this.y = random(0, canvas.height);
-        this.size = random(1, 3);
-        this.alpha = random(0.3, 1);
-        this.speed = random(0.1, 0.3); // Slower movement
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2 + 1;
+        this.alpha = Math.random() * 0.5 + 0.3;
+        this.speed = Math.random() * 0.2 + 0.1;
     }
 
     update() {
         this.y += this.speed;
-
-        // Reset when the star moves off-screen
         if (this.y > canvas.height) {
             this.y = 0;
-            this.x = random(0, canvas.width);
+            this.x = Math.random() * canvas.width;
         }
     }
 
@@ -94,15 +93,89 @@ class Star {
     }
 }
 
-/*------------------------ Cached Element References ------------------------*/
-function random(min, max) {
-    return min + Math.random() * (max - min);
+/*----------------------------- Functions -----------------------------*/
+function createAliens() {
+    for (let col = 0; col < alienColumnCount; col++) {
+        aliens[col] = [];
+        for (let row = 0; row < alienRowCount; row++) {
+            aliens[col][row] = new Alien(col * 40 + 30, row * 30 + 30);
+        }
+    }
 }
 
 function createStars() {
-    const numStars = (canvas.width * canvas.height) / 1000; 
+    const numStars = (canvas.width * canvas.height) / 2000;
     for (let i = 0; i < numStars; i++) {
         stars.push(new Star());
+    }
+}
+
+function moveAliens() {
+    for (let col of aliens) {
+        for (let alien of col) {
+            if (alien.status === 1) {
+                alien.move(alienSpeed, alienDirection);
+                alien.draw();
+                if (alien.x + alien.width > canvas.width || alien.x < 0) {
+                    alienDirection *= -1;
+                    aliens.flat().forEach(a => a.descend(20));
+                    return;
+                }
+                if (alien.y + alien.height >= player.y) {
+                    isGameOver = true;
+                    displayGameOver();
+                    return;
+                }
+            }
+        }
+    }
+}
+
+function movePlayer(e) {
+    if (e.key === "ArrowLeft" && player.x > 0) {
+        player.x -= 10;
+    } else if (e.key === "ArrowRight" && player.x < canvas.width - player.width) {
+        player.x += 10;
+    } else if (e.key === " ") {
+        shootBullet();
+    }
+}
+
+document.addEventListener("keydown", movePlayer);
+
+function shootBullet() {
+    if(!isGameOver){
+        blaster.play();
+        bullets.push({
+            x: player.x + player.width / 2 - 2.5,
+            y: player.y,
+            width: 5,
+            height: 10,
+            color: "white",
+            speed: 5
+        });
+    }
+}
+
+function updateBullets() {
+    for (let i = bullets.length - 1; i >= 0; i--) {
+        let bullet = bullets[i];
+        ctx.fillStyle = bullet.color;
+        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+        bullet.y -= bullet.speed;
+        
+        for (let col of aliens) {
+            for (let alien of col) {
+                if (alien.status === 1 && alien.checkCollision(bullet)) {
+                    alien.status = 0;
+                    bullets.splice(i, 1);
+                    score += 10;
+                    return;
+                }
+            }
+        }
+
+        if (bullet.y < 0) bullets.splice(i, 1);
     }
 }
 
@@ -113,121 +186,31 @@ function drawStars() {
     }
 }
 
-function createAliens() {
-    for (let col = 0; col < alienColumnCount; col++) {
-        aliens[col] = [];
-        for (let row = 0; row < alienRowCount; row++) {
-            aliens[col][row] = new Alien(
-                col * (30 + 10) + 30,
-                row * (20 + 10) + 30,
-            );
-        }
-    }
-}
-createAliens();
-createStars(); // Populate stars before starting the game
-
-/*----------------------------- Event Listeners -----------------------------*/
-document.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowLeft" && player.x > 0) {
-        e.preventDefault();
-        player.x -= 5;
-    } else if (e.key === "ArrowRight" && player.x < canvas.width - player.width) {
-        e.preventDefault();
-        player.x += 5;
-    } else if (e.key === " ") {
-        bullets.push({
-            x: player.x + player.width / 2 - 2.5,
-            y: player.y,
-            width: 5,
-            height: 10,
-            color: "white",
-            speed: 5
-        });
-    }
-});
-
-/*-------------------------------- Game Loop --------------------------------*/
-function game() {
-    if (isGameOver) return;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    drawStars(); // Draw moving stars
-
-    // Draw Player
-    ctx.fillStyle = player.color;
-    ctx.fillRect(player.x, player.y, player.width, player.height);
-
-    // Move & Draw Aliens
-    for (let col = 0; col < alienColumnCount; col++) {
-        for (let row = 0; row < alienRowCount; row++) {
-            let alien = aliens[col][row];
-            if (alien.status === 1) {
-                alien.move(alienSpeed, alienDirection);
-                alien.draw();
-            }
-        }
-    }
-
-    // Change Alien Direction on Wall Hit
-    for (let col = 0; col < alienColumnCount; col++) {
-        for (let row = 0; row < alienRowCount; row++) {
-            let alien = aliens[col][row];
-            if (alien.status === 1) {
-                if (alien.x + alien.width > canvas.width || alien.x < 0) {
-                    alienDirection *= -1;
-                    aliens.flat().forEach((a) => a.descend(20));
-                    break;
-                }
-                if (alien.y > player.y - alien.height) {
-                    isGameOver = true;
-                    displayGameOver();
-                }
-            }
-        }
-    }
-
-    // Draw & Move Bullets
-    for (let i = bullets.length - 1; i >= 0; i--) {
-        let bullet = bullets[i];
-        ctx.fillStyle = bullet.color;
-        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-        bullet.y -= bullet.speed;
-
-        // Check Collision with Aliens
-        for (let col = 0; col < alienColumnCount; col++) {
-            for (let row = 0; row < alienRowCount; row++) {
-                let alien = aliens[col][row];
-                if (alien.status === 1 && alien.checkCollision(bullet)) {
-                    alien.status = 0; // Destroy alien
-                    bullets.splice(i, 1); // Remove bullet
-                    score += 10;
-                    break;
-                }
-            }
-        }
-
-        // Remove bullets that go off-screen
-        if (bullet.y < 0) {
-            bullets.splice(i, 1);
-        }
-    }
-
-    // Display Score
+function drawScore() {
     ctx.fillStyle = "white";
     ctx.font = "16px Arial";
     ctx.fillText("Score: " + score, 8, 20);
-    // Check if all aliens are destroyed
+}
+
+function checkGameOver() {
     if (aliens.flat().every(alien => alien.status === 0)) {
         isGameOver = true;
         displayWin();
     }
+}
 
+function game() {
+    if (isGameOver) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawStars();
+    player.draw();
+    moveAliens();
+    updateBullets();
+    drawScore();
+    checkGameOver();
     requestAnimationFrame(game);
 }
 
-/*----------------------------- Game Over & Win -----------------------------*/
 function displayGameOver() {
     ctx.fillStyle = "white";
     ctx.font = "30px Arial";
@@ -242,6 +225,9 @@ function displayWin() {
     ctx.fillText("You Win!", canvas.width / 2, canvas.height / 2);
 }
 
-// Start the game
-game();
-   
+/*-------------------------- Start Game ------------------------*/
+playerImg.onload = enemyImg1.onload = () => {
+    createAliens();
+    createStars();
+    game();
+};
