@@ -2,7 +2,8 @@
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const blaster = new Audio("../assets/audio/blaster.wav");
-
+blaster.preload = 'auto';
+blaster.load()
 /*------------------------------ Load Sprites -----------------------------*/
 const playerImg = new Image();
 playerImg.src = "../assets/images/player.png";
@@ -43,7 +44,6 @@ class Alien {
         this.height = height;
         this.status = 1;
     }
-``
     move(speed, direction) {
         this.x += speed * direction;
     }
@@ -145,7 +145,8 @@ document.addEventListener("keydown", movePlayer);
 
 function shootBullet() {
     if(!isGameOver){
-        blaster.play();
+        let triggerBlaster = blaster.cloneNode();
+        triggerBlaster.play();
         bullets.push({
             x: player.x + player.width / 2 - 2.5,
             y: player.y,
