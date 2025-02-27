@@ -1,17 +1,30 @@
 /*-------------------------------- Cached Elements --------------------------------*/
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
-const blaster = new Audio("../assets/audio/blaster.wav");
-blaster.preload = 'auto';
-blaster.load()
+
 const scoreDisplay = document.getElementById("score");
-/*------------------------------ Load Sprites -----------------------------*/
+const resetBtn = document.getElementById("resetBtn");
+const startScreen = document.getElementById("startScreen")
+const resultsDisplay = document.getElementById('display')
+/*------------------------------ Load Assets -----------------------------*/
 const playerImg = new Image();
 playerImg.src = "../assets/images/player.png";
 
 const enemyImg1 = new Image();
 enemyImg1.src = "../assets/images/enemy1.png";
 
+const enemyImg2 = new Image()
+const blaster = new Audio("../assets/audio/blaster.wav");
+blaster.preload = 'auto';
+blaster.load();
+
+const enemyBlaster = new Audio("../assets/audio/reversed.wav");
+enemyBlaster.preload = 'auto';
+enemyBlaster.load();
+
+const explosion = new Audio("../assets/audio/explosion.mp3")
+explosion.preload = 'auto';
+explosion.load();
 /*-------------------------------- Constants --------------------------------*/
 const player = {
     x: canvas.width / 2 - 15,
@@ -25,14 +38,15 @@ const player = {
 
 const aliens = [];
 const bullets = [];
+const alienBullets = [];
 const stars = [];
-
-const alienRowCount = 3;
-const alienColumnCount = 6;
+const alienRowCount = 4;
+const alienColumnCount = 8;
 
 /*----------------------------- Variables -----------------------------------*/
 let alienSpeed = 0.5;
 let alienDirection = 1;
+let gameStarted = false;
 let isGameOver = false;
 let isPaused = false;
 let score = 0;
@@ -68,6 +82,21 @@ class Alien {
             bullet.y + bullet.height > this.y
         );
     }
+    shoot(){
+         const bullet = {
+            x: this.x + this.width / 2 - 2.5,
+            y: this.y + this.height, 
+            width: 5,
+            height: 10,
+            color: "red",
+            speed: 2,
+        };
+        alienBullets.push(bullet);
+        let enemyBlasterSound = enemyBlaster.cloneNode();
+        enemyBlasterSound.volume = .05;
+        enemyBlasterSound.play();
+    }
+
 }
 
 class Star {
@@ -96,6 +125,7 @@ class Star {
 }
 
 /*----------------------------- Functions -----------------------------*/
+
 function createAliens() {
     for (let col = 0; col < alienColumnCount; col++) {
         aliens[col] = [];
@@ -134,6 +164,7 @@ function moveAliens() {
 }
 
 function movePlayer(e) {
+    e.preventDefault();
     if (e.key === "ArrowLeft" && player.x > 0) {
         player.x -= 10;
     } else if (e.key === "ArrowRight" && player.x < canvas.width - player.width) {
@@ -145,11 +176,31 @@ function movePlayer(e) {
     }
 }
 
-document.addEventListener("keydown", movePlayer);
+
+
+function enemyShoot() {
+    const firingWindow = player.width / 2 + 20;
+    const shootingAliens = aliens.flat().filter(alien => 
+        alien.status === 1 && Math.abs(alien.x + alien.width / 2 - (player.x + player.width / 2)) <= firingWindow
+    );
+
+    if (shootingAliens.length === 0) return;
+
+    const shooter = shootingAliens[Math.floor(Math.random() * shootingAliens.length)];
+    shooter.shoot();
+}
+
+
+setInterval(() => {
+    if (gameStarted && !isGameOver && !isPaused) {
+        enemyShoot();
+    }
+}, 1500); 
 
 function shootBullet() {
     if(!isGameOver && !isPaused){
         let triggerBlaster = blaster.cloneNode();
+        triggerBlaster.volue = .10;
         triggerBlaster.play();
         bullets.push({
             x: player.x + player.width / 2 - 2.5,
@@ -167,20 +218,51 @@ function updateBullets() {
         let bullet = bullets[i];
         ctx.fillStyle = bullet.color;
         ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-        bullet.y -= bullet.speed;
-        
+        bullet.y -= bullet.speed; 
+
         for (let col of aliens) {
             for (let alien of col) {
                 if (alien.status === 1 && alien.checkCollision(bullet)) {
+                    let explosionInst = explosion.cloneNode();
+                    explosionInst.volume =.05;
+                    explosionInst.play();
                     alien.status = 0;
                     bullets.splice(i, 1);
                     score += 10;
                     return;
+
+                    
                 }
             }
         }
 
         if (bullet.y < 0) bullets.splice(i, 1);
+    }
+
+    for (let i = alienBullets.length - 1; i >= 0; i--) {
+        let bullet = alienBullets[i];
+        ctx.fillStyle = bullet.color;
+        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+        bullet.y += bullet.speed; 
+
+
+        if (
+            bullet.x < player.x + player.width &&
+            bullet.x + bullet.width > player.x &&
+            bullet.y < player.y + player.height &&
+            bullet.y + bullet.height > player.y
+        ) {
+            let explosionInst = explosion.cloneNode();
+            explosionInst.volume = .05;
+            explosionInst.play();
+            isGameOver = true;
+            displayGameOver();
+            return;
+        }
+
+        if (bullet.y > canvas.height) {
+            alienBullets.splice(i, 1);
+        }
     }
 }
 
@@ -205,20 +287,42 @@ function checkGameOver() {
     }
 }
 
+
 function game() {
-    if (isGameOver) return;
-     if (isPaused) {
+    if (!gameStarted || isGameOver) return;
+
+    if (isPaused) {
         handlePause();
         return;
     }
+    document.documentElement.dataset.interacted = true;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawStars();
     player.draw();
     moveAliens();
-    updateBullets();
+    updateBullets(); 
     drawScore();
     checkGameOver();
+
     requestAnimationFrame(game);
+}
+
+function drawInitialFrame() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawStars();  
+    player.draw();
+    aliens.flat().forEach(alien => alien.draw()); 
+    drawScore(); 
+}
+
+
+function startGame() {
+    if (!gameStarted) {
+        gameStarted = true;
+        startScreen.style.display = "none";
+
+        game();
+    }
 }
 
 function displayGameOver() {
@@ -226,6 +330,8 @@ function displayGameOver() {
     ctx.font = "30px Arial";
     ctx.textAlign = "center";
     ctx.fillText("Game Over!", canvas.width / 2, canvas.height / 2);
+    resetBtn.style.display = "block";
+
 }
 
 function displayWin() {
@@ -233,6 +339,22 @@ function displayWin() {
     ctx.font = "30px Arial";
     ctx.textAlign = "center";
     ctx.fillText("You Win!", canvas.width / 2, canvas.height / 2);
+    resetBtn.style.display = "block";
+
+}
+function resetGame() {
+    isGameOver = false;
+    isPaused = false;
+    score = 0;
+    alienDirection = 1;
+    aliens.length = 0;
+    bullets.length = 0;
+    alienBullets.length = 0;
+    
+    createAliens();
+    resetBtn.style.display = "none";
+    
+    game();
 }
 
 function togglePause() {
@@ -243,6 +365,7 @@ function togglePause() {
     }
 }
 
+
 function handlePause() {
     ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -252,9 +375,18 @@ function handlePause() {
     ctx.textAlign = "center";
     ctx.fillText("Paused", canvas.width / 2, canvas.height / 2);
 }
+
+/*------------------------ Event Listeners -----------------------------*/
+document.addEventListener("keydown", startGame);
+document.addEventListener("click", startGame);
+document.addEventListener("keydown", movePlayer);
+resetBtn.addEventListener("click", resetGame)
+
 /*-------------------------- Start Game ------------------------*/
 playerImg.onload = enemyImg1.onload = () => {
     createAliens();
     createStars();
+    drawInitialFrame();
     game();
+
 };
