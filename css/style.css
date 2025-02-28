@@ -1,3 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+.press-start-2p-regular {
+  font-family: "Press Start 2P", system-ui;
+  font-weight: 400;
+  font-style: normal;
+}
+
 :root {
 	--primary-color: #ffffff;
 	--secondary-color: #00ff00;
@@ -14,7 +22,7 @@
 	padding: 0;
 }
 
-body {
+main,body {
 	color: var(--primary-color);
 	background-color: var(--background-color);
 	font-family: var(--font-family);
@@ -26,14 +34,16 @@ body {
 	text-align: center;
 }
 
-header {
-	margin-bottom: 20px;
-}
-
-header h1 {
+h1 {
+	justify-self: center;
+	align-self: center;
+	font-family: "Press Start 2P", system-ui;
+	font-weight: 400;
+	font-style: normal; 
 	font-size: 2.5rem;
 	color: var(--secondary-color);
 	text-shadow: 0 0 10px var(--secondary-color);
+	opacity:.8;
 }
 
 #score {
@@ -49,7 +59,7 @@ canvas {
 
 #startScreen {
 	position: absolute;
-	top: 50%;
+	top: 55%;
 	left: 50%;
 	transform: translate(-50%, -50%);
 	font-size: 1.2rem;
@@ -76,33 +86,28 @@ canvas {
 	background-color: var(--button-hover-bg);
 }
 
-footer {
-	margin-top: 20px;
-	font-size: 0.9rem;
-	color: var(--secondary-color);
+#controls{
+	color:white;
+	position:absolute;
+	right:65%;
+	height:150px;
+
+	border:1px solid var(--secondary-color);
+	box-shadow: 0 0 10px var(--secondary-color);;
+	display:flex;
+	flex-direction: column;
+}
+#controls p{
+	text-decoration:underline;
+}
+ul{
+	list-style-type: none;
+	display:flex;
+	flex-direction: column;
+	gap:10px;
+	padding:10px;
+	align-content:space-between;
+	align-items:space-between;
 }
 
-/* Responsive Design */
-@media (max-width: 600px) {
-	header h1 {
-		font-size: 2rem;
-	}
 
-	#score {
-		font-size: 1.2rem;
-	}
-
-	canvas {
-		width: 90%;
-		height: auto;
-	}
-
-	#startScreen {
-		font-size: 1rem;
-	}
-
-	#resetBtn {
-		font-size: 0.9rem;
-		padding: 8px 16px;
-	}
-}

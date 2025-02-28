@@ -14,6 +14,8 @@ const enemyImg1 = new Image();
 enemyImg1.src = "../assets/images/enemy1.png";
 
 const enemyImg2 = new Image()
+enemyImg2.src = "../assets/images/enemy2.png"
+
 const blaster = new Audio("../assets/audio/blaster.wav");
 blaster.preload = 'auto';
 blaster.load();
@@ -49,7 +51,9 @@ let alienDirection = 1;
 let gameStarted = false;
 let isGameOver = false;
 let isPaused = false;
+let waveComplete = false;
 let score = 0;
+let wave = 1
 
 /*-------------------------------- Classes ----------------------------------*/
 class Alien {
@@ -68,9 +72,9 @@ class Alien {
         this.y += amount;
     }
 
-    draw() {
+    draw(img) {
         if (this.status === 1) {
-            ctx.drawImage(enemyImg1, this.x, this.y, this.width, this.height);
+            ctx.drawImage(img, this.x, this.y, this.width, this.height);
         }
     }
 
@@ -147,7 +151,7 @@ function moveAliens() {
         for (let alien of col) {
             if (alien.status === 1) {
                 alien.move(alienSpeed, alienDirection);
-                alien.draw();
+                alien.draw(wave === 1 ? enemyImg1 : enemyImg2)
                 if (alien.x + alien.width > canvas.width || alien.x < 0) {
                     alienDirection *= -1;
                     aliens.flat().forEach(a => a.descend(20));
@@ -256,7 +260,7 @@ function updateBullets() {
             explosionInst.volume = .05;
             explosionInst.play();
             isGameOver = true;
-            displayGameOver();
+            displayLose();
             return;
         }
 
@@ -282,19 +286,23 @@ function drawScore() {
 
 function checkGameOver() {
     if (aliens.flat().every(alien => alien.status === 0)) {
-        isGameOver = true;
-        displayWin();
+        if (wave >= 3) {
+            isGameOver = true;
+            displayWin();
+        } else {
+            displayWaveComplete();
+        }
     }
 }
 
-
 function game() {
-    if (!gameStarted || isGameOver) return;
+    if (!gameStarted || isGameOver || waveComplete) return;
 
     if (isPaused) {
         handlePause();
         return;
     }
+
     document.documentElement.dataset.interacted = true;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawStars();
@@ -311,7 +319,7 @@ function drawInitialFrame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawStars();  
     player.draw();
-    aliens.flat().forEach(alien => alien.draw()); 
+    aliens.flat().forEach(alien => alien.draw(enemyImg1)); 
     drawScore(); 
 }
 
@@ -324,14 +332,13 @@ function startGame() {
         game();
     }
 }
-
-function displayGameOver() {
+function displayLose(){
+    alienBullets.length =0;
     ctx.fillStyle = "white";
     ctx.font = "30px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("Game Over!", canvas.width / 2, canvas.height / 2);
+    ctx.fillText("You Lose!", canvas.width / 2, canvas.height / 2);
     resetBtn.style.display = "block";
-
 }
 
 function displayWin() {
@@ -364,7 +371,48 @@ function togglePause() {
         game();
     }
 }
+function displayWaveComplete() {
+    waveComplete = true; 
+    ctx.fillStyle = "white";
+    ctx.font = "30px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(`Wave ${wave} Completed!`, canvas.width / 2, canvas.height / 2);
+    wave++;
+    resetBtn.style.display="none";
+    let countdown = 3;
+    const countdownInterval = setInterval(() => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawStars();
+        ctx.fillStyle = "white";
+        ctx.font = "30px Arial";
+        ctx.fillText(`Next wave in: ${countdown}`, canvas.width / 2, canvas.height / 2);
 
+        countdown--;
+
+        if (countdown < 0) {
+            clearInterval(countdownInterval);
+            waveComplete = false; 
+            startNextWave();
+        }
+    }, 1000);
+}
+function startNextWave() {
+    aliens.length = 0; 
+    alienBullets.length = 0;
+    alienDirection = 1;
+    let newRowCount = alienRowCount + Math.floor(wave / 2); 
+    let newColumnCount = alienColumnCount + Math.floor(wave / 3);
+
+    for (let col = 0; col < newColumnCount; col++) {
+        aliens[col] = [];
+        for (let row = 0; row < newRowCount; row++) {
+            aliens[col][row] = new Alien(col * 40 + 30, row * 30 + 30);
+        }
+    }
+
+    alienSpeed += 0.1;
+    game();
+}
 
 function handlePause() {
     ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
