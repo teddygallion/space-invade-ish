@@ -1,6 +1,7 @@
 # General Assembly Project 1: Space Invade-ish
 
 ![Logo](/assets/images/logo.png "Space invade-ish Logo")
+[Live App - Click here to play!](https://teddygallion.github.io/space-invade-ish/)
 
 ## Description
 
@@ -12,6 +13,10 @@ HTML's built-in Canvas. The player and character elements were drawn by me so I
 felt that was a fun way to put a personal touch on the game.
 
 ## Screenshots
+
+![Screenshot 1](/assets/screenshots/cropped1.png "Live screenshot 1")
+![Screenshot 2](/assets/screenshots/cropped2.png "Live screenshot 2")
+![Screenshot 3](/assets/screenshots/cropped3.png "Live screenshot 3")
 
 ## 🛠️ Technologies Used  
 
