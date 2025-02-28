@@ -16,7 +16,7 @@ enemyImg1.src = "https://raw.githubusercontent.com/teddygallion/space-invade-ish
 const enemyImg2 = new Image()
 enemyImg2.src = "https://raw.githubusercontent.com/teddygallion/space-invade-ish/refs/heads/gh-pages/assets/images/enemy2.png"
 
-const blaster = new Audio("https://github.com/teddygallion/space-invade-ish/blob/gh-pages/assets/images/assets/audio/blaster.wav");
+const blaster = new Audio("hhttps://raw.githubusercontent.com/teddygallion/space-invade-ish/refs/heads/gh-pages/assets/audio/blaster.wav");
 blaster.preload = 'auto';
 blaster.load();
 blaster.volume = .05
