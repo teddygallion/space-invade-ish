@@ -19,14 +19,15 @@ enemyImg2.src = "../assets/images/enemy2.png"
 const blaster = new Audio("../assets/audio/blaster.wav");
 blaster.preload = 'auto';
 blaster.load();
-
+blaster.volume = .05
 const enemyBlaster = new Audio("../assets/audio/reversed.wav");
 enemyBlaster.preload = 'auto';
 enemyBlaster.load();
-
+enemyBlaster.volume = .05
 const explosion = new Audio("../assets/audio/explosion.mp3")
 explosion.preload = 'auto';
 explosion.load();
+explosion.volume = .05
 /*-------------------------------- Constants --------------------------------*/
 const player = {
     x: canvas.width / 2 - 15,
@@ -204,7 +205,7 @@ setInterval(() => {
 function shootBullet() {
     if(!isGameOver && !isPaused){
         let triggerBlaster = blaster.cloneNode();
-        triggerBlaster.volue = .10;
+        triggerBlaster.volue = .05;
         triggerBlaster.play();
         bullets.push({
             x: player.x + player.width / 2 - 2.5,
@@ -296,6 +297,7 @@ function checkGameOver() {
 }
 
 function game() {
+    
     if (!gameStarted || isGameOver || waveComplete) return;
 
     if (isPaused) {
@@ -317,23 +319,32 @@ function game() {
 
 function drawInitialFrame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     drawStars();  
     player.draw();
     aliens.flat().forEach(alien => alien.draw(enemyImg1)); 
+    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     drawScore(); 
+    ctx.fillStyle = "white";
+    ctx.font = "20px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Press any key or click to start", canvas.width / 2, canvas.height /2);
+
 }
 
 
 function startGame() {
     if (!gameStarted) {
         gameStarted = true;
-        startScreen.style.display = "none";
-
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         game();
     }
 }
 function displayLose(){
     alienBullets.length =0;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "white";
     ctx.font = "30px Arial";
     ctx.textAlign = "center";
@@ -342,6 +353,7 @@ function displayLose(){
 }
 
 function displayWin() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "white";
     ctx.font = "30px Arial";
     ctx.textAlign = "center";

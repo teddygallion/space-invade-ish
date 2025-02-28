@@ -11,12 +11,14 @@ and in the end I learned a lot more about creating and animating elements using
 HTML's built-in Canvas. The player and character elements were drawn by me so I
 felt that was a fun way to put a personal touch on the game.
 
+## Screenshots
+
 ## 🛠️ Technologies Used  
 
 - HTML5 Canvas  
 - JavaScript
 - CSS
-- [Piskel](https://piskelapp.com)
+- [Piskel](https://piskelapp.com) for drawing player/enemy sprites.
 
 ## 📜 How to Play
 
@@ -27,8 +29,9 @@ felt that was a fun way to put a personal touch on the game.
 
 ## Stretch Goals / Upcoming Updates
 
-- Infinite Gameplay, with longer rounds and more alien enemies
-- Upgrades for the players blaster
+- Infinite Gameplay, with longer rounds and more alien enemies.
+- Upgrades for the player's blaster.
+- High scores feature using browser storage.
 
 ## Attributions
 
