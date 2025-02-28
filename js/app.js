@@ -8,23 +8,23 @@ const startScreen = document.getElementById("startScreen")
 const resultsDisplay = document.getElementById('display')
 /*------------------------------ Load Assets -----------------------------*/
 const playerImg = new Image();
-playerImg.src = "../assets/images/player.png";
+playerImg.src = "https://teddygallion.github.io/space-invade-ish/assets/images/player.png";
 
 const enemyImg1 = new Image();
-enemyImg1.src = "../assets/images/enemy1.png";
+enemyImg1.src = "https://teddygallion.github.io/space-invade-ish/assets/images/enemy1.png";
 
 const enemyImg2 = new Image()
-enemyImg2.src = "../assets/images/enemy2.png"
+enemyImg2.src = "https://teddygallion.github.io/space-invade-ish/assets/images/enemy2.png"
 
-const blaster = new Audio("../assets/audio/blaster.wav");
+const blaster = new Audio("https://teddygallion.github.io/space-invade-ish/assets/audio/blaster.wav");
 blaster.preload = 'auto';
 blaster.load();
 blaster.volume = .05
-const enemyBlaster = new Audio("../assets/audio/reversed.wav");
+const enemyBlaster = new Audio("https://teddygallion.github.io/space-invade-ish/assets/audio/reversed.wav");
 enemyBlaster.preload = 'auto';
 enemyBlaster.load();
 enemyBlaster.volume = .05
-const explosion = new Audio("../assets/audio/explosion.mp3")
+const explosion = new Audio("https://teddygallion.github.io/space-invade-ish/assets/audio/explosion.mp3")
 explosion.preload = 'auto';
 explosion.load();
 explosion.volume = .05
