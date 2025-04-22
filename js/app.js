@@ -51,7 +51,7 @@ const alienRowCount = 4;
 const alienColumnCount = 8;
 
 /*----------------------------- Variables -----------------------------------*/
-let alienSpeed = 0.5;
+let alienSpeed = 0.3;
 let alienDirection = 1;
 let gameStarted = false;
 let isGameOver = false;
@@ -62,13 +62,22 @@ let wave = 1;
 
 /*-------------------------------- Classes ----------------------------------*/
 class Alien {
-    constructor(x, y, width = 50, height = 50) {
+    constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.width = width;
-        this.height = height;
+
+     
+        this.width = (canvas.width <= 768) 
+            ? (canvas.width * 7) / 100  
+            : 50; 
+
+        this.height = (canvas.height <= 768) 
+            ? (canvas.height * 7) / 100
+            : 50; 
+
         this.status = 1;
     }
+
     move(speed, direction) {
         this.x += speed * direction;
     }
@@ -91,6 +100,7 @@ class Alien {
             bullet.y + bullet.height > this.y
         );
     }
+
     shoot() {
         const bullet = {
             x: this.x + this.width / 2 - 2.5,
@@ -179,9 +189,19 @@ function createCanvas() {
     return canvas;
 }
 
-function resizeCanvas(canvas) {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+function resizeCanvas() {
+    canvas.width = window.innerWidth - 50;
+    canvas.height = window.innerHeight - 300;
+
+    if (canvas.width < 500) {
+        alienSpeed = 0.5;
+    } else if (canvas.width < 768) {
+        alienSpeed = 0.6;
+    } else {
+        alienSpeed = 0.7;
+    }
+
+    drawInitialFrame();
 }
 
 function drawInitialFrame() {
@@ -299,10 +319,6 @@ function createMobileControls() {
            
             const li = document.createElement("li");
             li.textContent = text;
-
-      
-
-
             ul.appendChild(li);
         });
 
@@ -314,7 +330,7 @@ function moveAliens() {
     for (let col of aliens) {
         for (let alien of col) {
             if (alien.status === 1) {
-                alien.move(alienSpeed, alienDirection);
+                alien.move(alienSpeed / 2, alienDirection);
                 alien.draw(wave === 1 ? enemyImg1 : enemyImg2);
                 if (alien.x + alien.width > canvas.width || alien.x < 0) {
                     alienDirection *= -1;
@@ -517,7 +533,7 @@ function startGame() {
 
 /*------------------------ Event Listeners -----------------------------*/
 window.addEventListener("resize", () => {
-    resizeCanvas(canvas);
+    resizeCanvas();
     createMobileControls();
 });
 window.addEventListener("load", () => {
