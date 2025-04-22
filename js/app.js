@@ -348,13 +348,17 @@ function moveAliens() {
 }
 
 function movePlayer(direction) {
+  
+    const playerSpeed = 10;
+
+ 
     if (direction === -1 && player.x > 0) {
-        player.x -= 10; 
-    } else if (direction === 1 && player.x < canvas.width - player.width) {
-        player.x += 10; 
+        player.x -= playerSpeed; 
+    } 
+    else if (direction === 1 && player.x < canvas.width - player.width) {
+        player.x += playerSpeed; 
     }
 }
-
 /*-------------------------- Gun Mechanics --------------------------------*/
 function enemyShoot() {
     const firingWindow = player.width / 2 + 20;
